@@ -1,6 +1,6 @@
 # minikubelab
 
-minikube starter project for Ubuntu 18.04 on Windows Subsystem Linux 2.
+`minikube` starter project for **Ubuntu 18.04** on **Windows Subsystem Linux 2**.
 
 <!-- TOC -->
 
@@ -10,6 +10,11 @@ minikube starter project for Ubuntu 18.04 on Windows Subsystem Linux 2.
     - [Installing minikube](#installing-minikube)
     - [Configuring VM driver](#configuring-vm-driver)
     - [Starting minikube](#starting-minikube)
+    - [minikube Commands](#minikube-commands)
+    - [minikube Addons](#minikube-addons)
+      - [Dashboard Addon](#dashboard-addon)
+      - [Installing Nginx to access dashboard on a headless VM](#installing-nginx-to-access-dashboard-on-a-headless-vm)
+    - [kubectl Commands](#kubectl-commands)
     - [Troubleshooting](#troubleshooting)
     - [References](#references)
 
@@ -17,7 +22,7 @@ minikube starter project for Ubuntu 18.04 on Windows Subsystem Linux 2.
 
 ## TL;DR
 
-minikube is local Kubernetes, focusing on making it easy to learn and develop for Kubernetes.
+`minikube` is local **Kubernetes**, focusing on making it easy to learn and develop for **Kubernetes**.
 
 ## Project
 
@@ -30,7 +35,7 @@ What you'll need:
 * Internet connection
 * Container or virtual machine manager
 
-> All you need is Docker (or similarly compatible) container or a Virtual Machine environment, and Kubernetes is a single command away: `minikube start`.
+> All you need is **Docker** (or similarly compatible) container or a Virtual Machine environment, and **Kubernetes** is a single command away: `minikube start`.
 
 ```
 curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube_latest_amd64.deb
@@ -45,10 +50,10 @@ As we're on a virtual machine, we should set VM driver to none, as we cannot vir
 sudo minikube config set vm-driver none
 ```
 
-You should see the following output, which you can ignore as we don't have minikube running.
+You should see the following output, which you can ignore as we don't have `minikube` running.
 
 ```
-These changes will take effect upon a minikube delete and then a minikube start
+These changes will take effect upon a minikube delete and then a minikube start.
 ```
 
 ### Starting minikube
@@ -88,6 +93,149 @@ A successful output should have the following:
 🌟  Enabled addons: storage-provisioner, default-storageclass
 🏄  Done! kubectl is now configured to use "minikube" cluster and "default" namespace by default
 ```
+
+### minikube Commands
+
+`minikube start` - Starts a new `minikube` cluster
+`minikube stop` - Stops the cluster and all its containers
+`minikube delete` - Deletes the cluster
+`minikube image list` - Displays a list of images
+`minikube image load` - Downloads and adds an image
+`minikube ip` - Gets the cluster IP
+`minikube logs` - Show the cluster logs
+`minikube service list` - Displays a list of services
+`minikube version` - Displays version
+`minikube update-check` - Checks latest version
+
+_Note: The `minikube image` command has superceded `minikube cache`._
+
+### minikube Addons
+
+`minikube addons` are preconfigured and preinstalled items that you can either enable or disable to get the functionality that you want from these addons.
+
+`minikube addons list` - Displays a list of addons
+
+#### Dashboard Addon
+
+```
+minikube addons enable dashboard
+```
+
+```
+    ▪ Using image kubernetesui/dashboard:v2.1.0
+    ▪ Using image kubernetesui/metrics-scraper:v1.0.4
+💡  Some dashboard features require the metrics-server addon. To enable all features please run:
+
+        minikube addons enable metrics-server
+
+
+🌟  The 'dashboard' addon is enabled
+```
+
+```
+minikube addons enable metrics-server
+```
+
+```
+|-----------------------------|----------|--------------|
+|         ADDON NAME          | PROFILE  |    STATUS    |
+|-----------------------------|----------|--------------|
+| ambassador                  | minikube | disabled     |
+| auto-pause                  | minikube | disabled     |
+| csi-hostpath-driver         | minikube | disabled     |
+| dashboard                   | minikube | enabled ✅   |
+| default-storageclass        | minikube | enabled ✅   |
+| efk                         | minikube | disabled     |
+| freshpod                    | minikube | disabled     |
+| gcp-auth                    | minikube | disabled     |
+| gvisor                      | minikube | disabled     |
+| helm-tiller                 | minikube | disabled     |
+| ingress                     | minikube | disabled     |
+| ingress-dns                 | minikube | disabled     |
+| istio                       | minikube | disabled     |
+| istio-provisioner           | minikube | disabled     |
+| kubevirt                    | minikube | disabled     |
+| logviewer                   | minikube | disabled     |
+| metallb                     | minikube | disabled     |
+| metrics-server              | minikube | enabled ✅   |
+| nvidia-driver-installer     | minikube | disabled     |
+| nvidia-gpu-device-plugin    | minikube | disabled     |
+| olm                         | minikube | disabled     |
+| pod-security-policy         | minikube | disabled     |
+| registry                    | minikube | disabled     |
+| registry-aliases            | minikube | disabled     |
+| registry-creds              | minikube | disabled     |
+| storage-provisioner         | minikube | enabled ✅   |
+| storage-provisioner-gluster | minikube | disabled     |
+| volumesnapshots             | minikube | disabled     |
+|-----------------------------|----------|--------------|
+```
+
+```
+minikube dashboard
+```
+
+Press `Ctrl-C` to terminate the dashboard.
+
+#### Installing Nginx to access dashboard on a headless VM
+
+```
+minikube service list
+```
+
+```
+|----------------------|---------------------------|--------------|-----|
+|      NAMESPACE       |           NAME            | TARGET PORT  | URL |
+|----------------------|---------------------------|--------------|-----|
+| default              | kubernetes                | No node port |
+| kube-system          | kube-dns                  | No node port |
+| kube-system          | metrics-server            | No node port |
+| kubernetes-dashboard | dashboard-metrics-scraper | No node port |
+| kubernetes-dashboard | kubernetes-dashboard      | No node port |
+|----------------------|---------------------------|--------------|-----|
+```
+
+```
+kubectl get svc -n kubernetes-dashboard
+```
+
+Container ports are not mapped to node ports.
+
+```
+NAME                        TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)    AGE
+dashboard-metrics-scraper   ClusterIP   10.110.239.183   <none>        8000/TCP   3m35s
+kubernetes-dashboard        ClusterIP   10.103.51.186    <none>        80/TCP     3m35s
+```
+
+```
+kubectl edit svc kubernetes-dashboard -n kubernetes-dashboard
+```
+
+Change the line `type: ClusterIP` to `type: NodePort` to allow a custom Port. Add a new line `nodePort: 30000` after `targetPort: <port>`.
+
+We will require both `minikube ip` and `nodePort: 30000` for **Nginx** configuration.
+
+```
+sudo apt install -y nginx
+sudo vim /etc/nginx/sites-enabled/default
+```
+
+Change the `location` directive under `server` to the following:
+
+```
+location / {
+    proxy_pass http://<minikube_ip>:<node_port>
+}
+```
+
+Restart the web server with `sudo systemctl restart nginx`. Now open a web browser and navigate to your VM's public IP address.
+
+### kubectl Commands
+
+`kubectl create deployment --image <image> <instance_name>` - Deploys a container with `<instance_name>` using the `<image>`
+`kubectl expose deployment <instance_name> --port=<port> --type=NodePort` - Exposes a port in the container with `<instance_name>`.
+`kubectl get po` - Displays a list of pods
+`kubectl get svc` - Displays a list of containers in the `default` namespace. Use `-A` option for all namespaces.
 
 ### Troubleshooting
 
